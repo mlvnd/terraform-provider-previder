@@ -250,7 +250,7 @@ func resourcePreviderVirtualMachineCreate(d *schema.ResourceData, meta interface
 	task, err := c.VirtualMachine.Create(&vm)
 	if err != nil {
 		return fmt.Errorf(
-			"Error while creating VirtualMachine (%s): %s", d.Id(), err)
+			"error while creating VirtualMachine (%s): %w", d.Id(), err)
 	}
 
 	_, _ = c.Task.WaitFor(task.Id, 5*time.Minute)
@@ -259,7 +259,7 @@ func resourcePreviderVirtualMachineCreate(d *schema.ResourceData, meta interface
 	_, err = WaitForVirtualMachineAttribute(d, "POWEREDON", []string{"NEW", "DEPLOYING"}, "state", meta)
 	if err != nil {
 		return fmt.Errorf(
-			"Error waiting for VirtualMachine (%s) to become ready: %s", d.Id(), err)
+			"error waiting for VirtualMachine (%s) to become ready: %w", d.Id(), err)
 	}
 
 	return resourcePreviderVirtualMachineRead(d, meta)
@@ -371,7 +371,7 @@ func resourcePreviderVirtualMachineUpdate(d *schema.ResourceData, meta interface
 
 		if err != nil {
 			return fmt.Errorf(
-				"Error waiting for update of cpuCores or memory of VirtualMachine (%s): %s", d.Id(), err)
+				"error waiting for update of cpuCores or memory of VirtualMachine (%s): %w", d.Id(), err)
 		}
 
 		_, _ = c.Task.WaitFor(task.Id, 5*time.Minute)
@@ -452,7 +452,7 @@ func resourcePreviderVirtualMachineUpdate(d *schema.ResourceData, meta interface
 
 	if err != nil {
 		return fmt.Errorf(
-			"Error while updating VirtualMachine (%s): %s", d.Id(), err)
+			"error while updating VirtualMachine (%s): %w", d.Id(), err)
 	}
 
 	_, _ = c.Task.WaitFor(task.Id, 5*time.Minute)
@@ -485,7 +485,7 @@ func resourcePreviderVirtualMachineDelete(d *schema.ResourceData, meta interface
 	}
 
 	if err != nil {
-		return fmt.Errorf("Error deleting VirtualMachine: %s", err)
+		return fmt.Errorf("error deleting VirtualMachine: %w", err)
 	}
 
 	c.Task.WaitFor(task.Id, 30*time.Minute)
@@ -533,7 +533,6 @@ func getVirtualMachineStatus(d *schema.ResourceData, meta interface{}) string {
 
 	if err != nil {
 		log.Printf("invalid VirtualMachine id: %v", err)
-		fmt.Errorf("invalid VirtualMachine id: %v", err)
 		return "UNKNOWN"
 	}
 
@@ -549,8 +548,8 @@ func gracefullyShutdownVirtualMachine(d *schema.ResourceData, meta interface{}) 
 	c := meta.(*client.BaseClient)
 	task, err := c.VirtualMachine.Control(d.Id(), client.VmActionShutdown)
 	if err != nil {
-		fmt.Sprintf(
-			"Error received while shutting down (%s) to shutdown: %s", d.Id(), err.Error())
+		log.Printf(
+			"error received while shutting down (%s) to shutdown: %s", d.Id(), err.Error())
 		task, err = c.VirtualMachine.Control(d.Id(), client.VmActionPowerOff)
 	}
 
@@ -558,8 +557,8 @@ func gracefullyShutdownVirtualMachine(d *schema.ResourceData, meta interface{}) 
 
 	_, err = WaitForVirtualMachineAttribute(d, "POWEREDOFF", []string{""}, "state", meta)
 	if err != nil {
-		fmt.Sprintf(
-			"Error waiting for VirtualMachine (%s) to shutdown: %s", d.Id(), err.Error())
+		log.Printf(
+			"error waiting for VirtualMachine (%s) to shutdown: %s", d.Id(), err.Error())
 	}
 
 	return nil

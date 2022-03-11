@@ -47,10 +47,12 @@ func resourcePreviderVirtualNetworkCreate(d *schema.ResourceData, meta interface
 	task, err := c.VirtualNetwork.Create(network)
 
 	if err != nil {
-		return fmt.Errorf("Error creating VirtualNetwork: %s", err)
+		return fmt.Errorf("error creating VirtualNetwork: %w", err)
 	}
 
-	c.Task.WaitFor(task.Id, 5*time.Minute)
+	if _, err := c.Task.WaitFor(task.Id, 5*time.Minute); err != nil {
+		return fmt.Errorf("error creating VirtualNetwork: %w", err)
+	}
 	log.Printf("[INFO] Virtual network %s created", network.Name)
 
 	return resourcePreviderVirtualNetworkUpdate(d, meta)
@@ -66,7 +68,7 @@ func resourcePreviderVirtualNetworkRead(d *schema.ResourceData, meta interface{}
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving VirtualNetwork: %s", err)
+		return fmt.Errorf("error retrieving VirtualNetwork: %w", err)
 	}
 	d.SetId(virtualNetwork.Id)
 	d.Set("name", virtualNetwork.Name)
@@ -85,7 +87,7 @@ func resourcePreviderVirtualNetworkUpdate(d *schema.ResourceData, meta interface
 			d.SetId("")
 			return nil
 		}
-		return fmt.Errorf("Error retrieving VirtualNetwork: %s", err)
+		return fmt.Errorf("error retrieving VirtualNetwork: %w", err)
 	}
 
 	// Build up addressPool
@@ -110,7 +112,7 @@ func resourcePreviderVirtualNetworkUpdate(d *schema.ResourceData, meta interface
 	_, uerr := c.VirtualNetwork.Update(virtualNetwork.Id, &update)
 	//
 	if uerr != nil {
-		return fmt.Errorf("Error updating VirtualNetwork: %s", uerr)
+		return fmt.Errorf("error updating VirtualNetwork: %w", uerr)
 	}
 	//
 	log.Printf("[INFO] Virtual network %s updated", update.Name)
@@ -126,7 +128,7 @@ func resourcePreviderVirtualNetworkDelete(d *schema.ResourceData, meta interface
 	c.Task.WaitFor(task.Id, 5*time.Minute)
 
 	if err != nil {
-		return fmt.Errorf("Error deleting VirtualNetwork: %s", err)
+		return fmt.Errorf("error deleting VirtualNetwork: %w", err)
 	}
 	d.SetId("")
 
