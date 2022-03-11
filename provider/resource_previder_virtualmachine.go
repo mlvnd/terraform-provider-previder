@@ -3,8 +3,8 @@ package provider
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/previder/previder-go-sdk/client"
 	"log"
 	"strings"
@@ -40,10 +40,10 @@ func resourcePreviderVirtualMachine() *schema.Resource {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-            "group": {
-                Type:     schema.TypeString,
-                Optional: true,
-            },
+			"group": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"disk": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -179,9 +179,9 @@ func resourcePreviderVirtualMachineCreate(d *schema.ResourceData, meta interface
 	if attr, ok := d.GetOk("memory"); ok {
 		vm.Memory = uint64(attr.(int))
 	}
-    if attr, ok := d.GetOk("group"); ok {
-        vm.Group = attr.(string)
-    }
+	if attr, ok := d.GetOk("group"); ok {
+		vm.Group = attr.(string)
+	}
 	if attr, ok := d.GetOk("user_data"); ok {
 		vm.UserData = attr.(string)
 	}
@@ -332,10 +332,10 @@ func resourcePreviderVirtualMachineRead(d *schema.ResourceData, meta interface{}
 		networkInterfaces[i]["ipv4_address"] = ipv4Address
 		networkInterfaces[i]["ipv6_address"] = ipv6Address
 
-        if _, ok := d.GetOk("ipv4_address"); !ok {
-            log.Printf("[INFO] Using IPv4 address: %s", ipv4Address)
-            d.Set("ipv4_address", ipv4Address)
-        }
+		if _, ok := d.GetOk("ipv4_address"); !ok {
+			log.Printf("[INFO] Using IPv4 address: %s", ipv4Address)
+			d.Set("ipv4_address", ipv4Address)
+		}
 	}
 
 	err = d.Set("network_interface", networkInterfaces)
@@ -379,7 +379,7 @@ func resourcePreviderVirtualMachineUpdate(d *schema.ResourceData, meta interface
 	}
 
 	if d.HasChange("group") {
-        vm.group = d.Get("group").(string)
+		vm.Group = d.Get("group").(string)
 	}
 
 	if d.HasChange("disk") {
@@ -429,7 +429,7 @@ func resourcePreviderVirtualMachineUpdate(d *schema.ResourceData, meta interface
 			found := false
 			for i, vmNic := range vm.NetworkInterfaces {
 				if vmNic.MacAddress == tfNic["mac_address"] || vmNic.Label == tfNic["label"] {
-				    vm.NetworkInterfaces[i].Network = tfNic["network"].(string)
+					vm.NetworkInterfaces[i].Network = tfNic["network"].(string)
 					found = true
 				}
 			}
@@ -447,9 +447,8 @@ func resourcePreviderVirtualMachineUpdate(d *schema.ResourceData, meta interface
 	log.Printf("[INFO] Updating VirtualMachine: %s", d.Id())
 	task, err := c.VirtualMachine.Update(vm.Id, vm)
 
-    vmJson, _ := json.Marshal(vm)
-    log.Printf("[DEBUG] Virtual Server Update configuration: %s", string(vmJson))
-
+	vmJson, _ := json.Marshal(vm)
+	log.Printf("[DEBUG] Virtual Server Update configuration: %s", string(vmJson))
 
 	if err != nil {
 		return fmt.Errorf(
